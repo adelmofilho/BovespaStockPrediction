@@ -4,7 +4,7 @@ Adelmo M. A. Filho
 January 1st, 2020
 
 <br>
-<center><h1>Predicting the Brazilian stock market index through recurrent neural networks</h1></center>
+<p align="center"> <h1>Predicting the Brazilian stock market index through recurrent neural networks</h1></p>
 
 ## Proposal
 _(approx. 2-3 pages)_

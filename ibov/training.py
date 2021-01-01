@@ -1,4 +1,7 @@
+import pandas as pd
 from torch import nn
+import pylab as pl
+from IPython import display
 
 class IbovModel(nn.Module):
 
@@ -19,27 +22,53 @@ class IbovModel(nn.Module):
         return output
 
 
-def train(data, model, criterion, optimizer, epochs):
+def train(trainData, validData, model, criterion, optimizer, epochs):
+
+    loss_list = []
+    valid_loss_list = []
 
     for epoch in range(epochs):
         
+        # Restart model training status
         model.train()
+        # Restart loss value
         loss_value = 0.0
+        valid_loss_value = 0.0
         
-        for batch in data:
-
+        for batch in trainData:
+            # Get training data
             batch_x, batch_y = batch
-
-            # zero the parameter gradients
+            # Zero the parameter gradients
             optimizer.zero_grad()
-
-            # forward + backward + optimize
+            # Forward
             outputs = model(batch_x)
             loss = criterion(outputs, batch_y)
+            # Backward
             loss.backward()
+            # Optimize
             optimizer.step()
-
-            # print statistics
+            # Update Loss
             loss_value += loss.item()
-        print(loss_value)
+            # Turn model to evaluation mode
+            model.eval()
+        # Predict over validation dataset
+        for batch in validData:
+            # Get validation data
+            batch_x, batch_y = batch
+            # Prediction
+            outputs = model(batch_x)
+            # Validation loss
+            valid_loss = criterion(outputs, batch_y)
+            # Update loss
+            valid_loss_value += valid_loss.item()
+        # Plot loss across epochs
+        loss_list.append(loss_value)
+        valid_loss_list.append(valid_loss_value)
+        pl.plot(loss_list, '-b', label="TrainLoss")
+        pl.plot(valid_loss_list, '-r', label="ValidLoss")
+        # if epoch == 1:
+        #     pl.legend(loc='upper right')
+        display.display(pl.gcf())
+        display.clear_output(wait=True)
+
     model.eval()

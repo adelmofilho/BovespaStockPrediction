@@ -1,0 +1,23 @@
+{
+    "feature": {
+        "window": 7
+    },
+    "data": {
+        "root": "data"
+    },
+    "ibovespa": {
+        "ticker": "^BVSP",
+        "stocks": [
+            "ITUB4.SA",
+            "BBDC4.SA",
+            "VALE3.SA",
+            "PETR4.SA",
+            "PETR3.SA",
+            "ABEV3.SA",
+            "BBAS3.SA",
+            "B3SA3.SA",
+            "ITSA4.SA"
+        ],
+        "ref": "https://www.onze.com.br/blog/acoes-ibovespa/"
+    }
+}

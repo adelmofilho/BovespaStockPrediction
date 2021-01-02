@@ -17,9 +17,9 @@ Described as an indicator of the average performance of the most tradable and re
 
 For this project, a time series regression to predict the closing value for Bovespa index for the next trading day is proposed. 
 
-$$
+$
 \Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt\,.
-$$
+$
 
 In this section, clearly describe the problem that is to be solved. The problem described should be well defined and should have at least one relevant potential solution. Additionally, describe the problem thoroughly such that it is clear that the problem is quantifiable (the problem can be expressed in mathematical or logical terms) , measurable (the problem can be measured by some metric and clearly observed), and replicable (the problem can be reproduced and occurs more than once).
 

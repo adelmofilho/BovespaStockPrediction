@@ -4,7 +4,7 @@ Adelmo M. A. Filho
 January 1st, 2020
 
 <br>
-<p align="center"> <h1>Predicting the Brazilian stock market index through recurrent neural networks</h1></p>
+<h1 align="center">Predicting the Brazilian stock market index through recurrent neural networks</h1>
 
 ## Proposal
 _(approx. 2-3 pages)_
@@ -20,9 +20,39 @@ _(approx. 1 paragraph)_
 In this section, clearly describe the problem that is to be solved. The problem described should be well defined and should have at least one relevant potential solution. Additionally, describe the problem thoroughly such that it is clear that the problem is quantifiable (the problem can be expressed in mathematical or logical terms) , measurable (the problem can be measured by some metric and clearly observed), and replicable (the problem can be reproduced and occurs more than once).
 
 ### Datasets and Inputs
-_(approx. 2-3 paragraphs)_
 
-In this section, the dataset(s) and/or input(s) being considered for the project should be thoroughly described, such as how they relate to the problem and why they should be used. Information such as how the dataset or input is (was) obtained, and the characteristics of the dataset or input, should be included with relevant references and citations as necessary It should be clear how the dataset(s) or input(s) will be used in the project and whether their use is appropriate given the context of the problem.
+The datasets are provided the python package [Yahooquery](https://yahooquery.dpguthrie.com/) which works as a wrapper for an unofficial [Yahoo Finance](https://finance.yahoo.com/) API. Data used on this project was obtained for free, there was no need for a Yahoo Finance premium subscription.
+
+The `history` method from `Ticker` class of Yahooquery package allows to retrive daily data about stock markets. The following code displays how to get historical data for the Bovespa Index, also a sample of this data is presented.
+
+```
+from yahooquery import Ticker
+ibov = Ticker(symbols = "^BVSP")
+ibov.history(period="max")
+``` 
+
+| symbol | date       | open    | close   | low     | high    | volume     | adjclose |
+|--------|------------|---------|---------|---------|---------|------------|----------|
+| ^BVSP  | 2020-04-08 | 76335.0 | 78625.0 | 76115.0 | 79058.0 | 10206300.0 | 78625.0  |
+| ^BVSP  | 2020-04-07 | 74078.0 | 76358.0 | 74078.0 | 79855.0 | 11286500.0 | 76358.0  |
+| ^BVSP  | 2020-04-06 | 69556.0 | 74073.0 | 69556.0 | 75260.0 | 9685400.0  | 74073.0  |
+| ^BVSP  | 2020-04-03 | 72241.0 | 69538.0 | 67802.0 | 72241.0 | 10411300.0 | 69538.0  |
+| ^BVSP  | 2020-04-02 | 70969.0 | 72253.0 | 70957.0 | 73861.0 | 10540200.0 | 72253.0  |
+
+Not only Bovespa Index data is expected to be used on this project, but also historical data from the main stocks that represents its portfolio. The following table presents the main stocks that compose Bovespa Index and their global participation on the portfolio.
+
+| Ticker | Company                              | IBOVESPA Participation |
+|--------|--------------------------------------|------------------------|
+| ITUB4  | Itaú Unibanco Holding S.A.           | 10,50%                 |
+| BBDC4  | Banco Bradesco S.A.                  | 9,12%                  |
+| VALE3  | Vale S.A.                            | 8,59%                  |
+| PETR4  | Petróleo Brasileiro S.A. - Petrobras | 7,06%                  |
+| PETR3  | Petróleo Brasileiro S.A. - Petrobras | 5,14%                  |
+| ABEV3  | Ambev S.A.                           | 5,14%                  |
+| BBAS3  | Banco do Brasil S.A.                 | 4,47%                  |
+| B3SA3  | B3 S.A. - Brasil, Bolsa, Balcão      | 4,15%                  |
+| ITSA4  | Itaúsa - Investimentos Itaú S.A.     | 3,86%                  |
+
 
 ### Solution Statement
 _(approx. 1 paragraph)_

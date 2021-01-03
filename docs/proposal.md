@@ -1,5 +1,7 @@
 # Machine Learning Engineer Nanodegree
+
 ## Capstone Proposal
+
 Adelmo M. A. Filho  
 January 1st, 2020
 
@@ -17,9 +19,9 @@ Described as an indicator of the average performance of the most tradable and re
 
 For this project, a time series regression to predict the closing value for Bovespa index for the next trading day is proposed. 
 
-$$\Gamma(z) = \int_0^\infty t^{z-1}e^{-t}dt\,.$$
+In general terms, Bovespa index closing value can be defined as a function of its previous values (endogenous varibles) and independent (exogenous) variables, for example, calendar variables (weekday, month), stock values, dolar exchange.
 
-In this section, clearly describe the problem that is to be solved. The problem described should be well defined and should have at least one relevant potential solution. Additionally, describe the problem thoroughly such that it is clear that the problem is quantifiable (the problem can be expressed in mathematical or logical terms) , measurable (the problem can be measured by some metric and clearly observed), and replicable (the problem can be reproduced and occurs more than once).
+The use of such kind of model provides useful support to decisions, simulate different scenarios and understand variables importance for the Bovespa index closing value.
 
 ### Datasets and Inputs
 
@@ -52,19 +54,22 @@ Not only Bovespa Index data is expected to be used on this project, but also his
 
 
 ### Solution Statement
-_(approx. 1 paragraph)_
+
+
 
 In this section, clearly describe a solution to the problem. The solution should be applicable to the project domain and appropriate for the dataset(s) or input(s) given. Additionally, describe the solution thoroughly such that it is clear that the solution is quantifiable (the solution can be expressed in mathematical or logical terms) , measurable (the solution can be measured by some metric and clearly observed), and replicable (the solution can be reproduced and occurs more than once).
 
 ### Benchmark Model
-_(approximately 1-2 paragraphs)_
 
-In this section, provide the details for a benchmark model or result that relates to the domain, problem statement, and intended solution. Ideally, the benchmark model or result contextualizes existing methods or known information in the domain and problem given, which could then be objectively compared to the solution. Describe how the benchmark model or result is measurable (can be measured by some metric and clearly observed) with thorough detail.
+For this project, the benchmark model will be a simple moving average model with period equal to one, which means the prediction of Bovespa index closing value for the next trading day will be equals to the closing value of the index on the current day.
 
 ### Evaluation Metrics
-_(approx. 1-2 paragraphs)_
 
-In this section, propose at least one evaluation metric that can be used to quantify the performance of both the benchmark model and the solution model. The evaluation metric(s) you propose should be appropriate given the context of the data, the problem statement, and the intended solution. Describe how the evaluation metric(s) are derived and provide an example of their mathematical representations (if applicable). Complex evaluation metrics should be clearly defined and quantifiable (can be expressed in mathematical or logical terms).
+Model performance will be evaluated using an out-of-time sample (test dataset) of the last 3 months, for both the solution and benchmark models, to estimate two metrics: 
+
+- Median absolute error regression loss: This metrics helps us to understand how much the model is making low error predictions. The median calculation is insensitive to outliers, a good propriety in order to select a robust estimator.
+
+- F1-score: Predictions should not only have low absolute error, it is important for the model to estimate correctly if the index value for the next trading day will increase or decrease. In order to achieve this understanding about a model, the sign of index value variation of one day will be calculated for all test dataset e predictions to calculate the F1-score.
 
 ### Project Design
 _(approx. 1 page)_

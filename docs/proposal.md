@@ -1,11 +1,10 @@
-# Machine Learning Engineer Nanodegree
+# Ibovespa forecasting using neural networks
 
-## Capstone Proposal
+### Machine Learning Engineer Nanodegree
+### Capstone Proposal
 
 Adelmo M. A. Filho  
-January 1st, 2020
-
-# Predicting the Ibovespa through recurrent neural networks
+January 3rd, 2020
 
 ## Proposal
 
@@ -55,9 +54,11 @@ Not only Bovespa Index data is expected to be used on this project, but also his
 
 ### Solution Statement
 
+The proposed solution for this project is to train and deploy a LSTM recurrent neural network combined with another adicional layers in order to create a complex neural network able to predict the Bovespa index closing value for the next trading day. These adicional layers have exogenous variables as input.
 
+An adicional neural network will be created in order to estimate the variation sign of the Bovespa index closing value between days. The predict sign from this adicional model will also be used as input variable.
 
-In this section, clearly describe a solution to the problem. The solution should be applicable to the project domain and appropriate for the dataset(s) or input(s) given. Additionally, describe the solution thoroughly such that it is clear that the solution is quantifiable (the solution can be expressed in mathematical or logical terms) , measurable (the solution can be measured by some metric and clearly observed), and replicable (the solution can be reproduced and occurs more than once).
+The neural network architecture and hyperparameters will be discovery through grid-search techniques using an adicional out-of-time validation dataset.
 
 ### Benchmark Model
 
@@ -69,21 +70,43 @@ Model performance will be evaluated using an out-of-time sample (test dataset) o
 
 - Median absolute error regression loss: This metrics helps us to understand how much the model is making low error predictions. The median calculation is insensitive to outliers, a good propriety in order to select a robust estimator.
 
-- F1-score: Predictions should not only have low absolute error, it is important for the model to estimate correctly if the index value for the next trading day will increase or decrease. In order to achieve this understanding about a model, the sign of index value variation of one day will be calculated for all test dataset e predictions to calculate the F1-score.
+- F1-score: Predictions should not only have low absolute error, it is important for the model to estimate correctly if the index value for the next trading day will increase or decrease. In order to achieve this understanding about a model, the sign of index value variation of one day will be calculated for test dataset and predictions to calculate the F1-score.
+
+It is important to notice that it is not expected good metric values. Bovespa index closing values are highly influenced events such as political decisions and news, which are out of scope for this project.
 
 ### Project Design
-_(approx. 1 page)_
 
-In this final section, summarize a theoretical workflow for approaching a solution given the problem. Provide thorough discussion for what strategies you may consider employing, what analysis of the data might be required before being used, or which algorithms will be considered for your implementation. The workflow and discussion that you provide should align with the qualities of the previous sections. Additionally, you are encouraged to include small visualizations, pseudocode, or diagrams to aid in describing the project design, but it is not required. The discussion should clearly outline your intended workflow of the capstone project.
+Project design is divided into two perspectives: modelling and deployment.
+
+#### Modelling
+
+For modelling purposes, CRISP-DM Methodology (Figure 1) will be adopted. This metodology imples on a constant feedback between its stages and the understanding that data science processes are not linear. The main stages are broken down as follow.
+
+- Data understading: At this stage, it is planned to explore data distribuition and visualizations in order to obtain insigths about the modelling problem. Histograms, boxplots, scatterplots are examples of tools expected to be applied.
+
+- Data prepration: Datasets will be joined and features will be created for posterior confirmation of thehr importance on model performance. It is expected to work with stock market data and calendar variables to create multiple features, which combined with our target creates the modelling dataset.
+
+- Data modelling: At this point, the modelling dataset will be splited on training, validation and test datasets. Each one corresponds to a out-of-time sample from the modelling dataset. Recurrent neural networks will be created using `pytorch` and `AWS Sagemaker`, it is expected to test of different layers to achieve the best architecture for this project.
+
+- Evaluation: As describe previously, Median absolute error regression loss (MAE) and F1-score will be employed to select the best model. A low MAE metric value must be  accompanied by a high F1-score in order for obtain a meaningfull prediction.
+
+![CRISP-DM Methodology](https://smartvision-me.com/wp-content/uploads/2019/08/crisp-dm.png)
+
+
+## Model deployment
+
+This capstone project intends to delivery a web application where users can get the predictions for the next days of Bovespa index closing value. To achive such objective, the following architecture is proposed (Figure 2).
+
+In details, every day a scheduler triggers a lambda function in order to collect new data from yahoo finance api. When new data is written at a S3 bucket, a event is trigged a step-function processo that prepares input data at a lambda layer and starts a Sagemaker batch transform job to make a new prediction.
+
+Predictions and raw data are displayed at a web application on the top of a EC2 instance, which users can acess through Route S3 routing traffic service.
+
+The focus of this architecture is the serverless approach of machine learning deployments. It is importante to notice that eventual modifications and improvements on the model, can be easily added on this architecture, as well a model recalibration flows.
+
+![Model deployment architecture](https://i.imgur.com/v0vAtBf.png)
+
 
 ### References
 
------------
-
-**Before submitting your proposal, ask yourself. . .**
-
-- Does the proposal you have written follow a well-organized structure similar to that of the project template?
-- Is each section (particularly **Solution Statement** and **Project Design**) written in a clear, concise and specific fashion? Are there any ambiguous terms or phrases that need clarification?
-- Would the intended audience of your project be able to understand your proposal?
-- Have you properly proofread your proposal to assure there are minimal grammatical and spelling mistakes?
-- Are all the resources used for this project correctly cited and referenced?
+- Faria, Elisangela Lopes de. Uma metodologia para previsão do índice BOVESPA utilizando Mineração de Textos – Rio de Janeiro: UFRJ/COPPE, 2012.
+- Finkler, Aline Cristiane. Aprendizagem de máquina aplicada à previsão dos movimentos do Ibovespa – Curitiba, 2017

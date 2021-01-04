@@ -86,7 +86,7 @@ For modeling purposes, CRISP-DM Methodology (Figure 1) will be adopted. This met
 
 - Evaluation: As describe previously, Median absolute error regression loss (MAE) and F1-score will be employed to select the best model. A low MAE metric value must also have a high F1-score in order for obtain a meaningful prediction.
 
-![CRISP-DM Methodology](https://smartvision-me.com/wp-content/uploads/2019/08/crisp-dm.png){ width=50% }
+![CRISP-DM Methodology](https://smartvision-me.com/wp-content/uploads/2019/08/crisp-dm.png)
 
 
 ## Model deployment
@@ -99,4 +99,4 @@ Predictions and raw data are displayed at a web application on the top of a EC2 
 
 The focus of this architecture is the serverless approach of machine learning deployments. It is important to notice that eventual modifications and improvements on the model, can be easily added on this architecture, as well a model recalibration flow.
 
-![Model deployment architecture](https://i.imgur.com/v0vAtBf.png){ width=85% }
+![Model deployment architecture](https://i.imgur.com/v0vAtBf.png)

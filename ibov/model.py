@@ -5,12 +5,12 @@ from IPython import display
 
 class IbovModel(nn.Module):
 
-    def __init__(self, window, hidden_layer=50, dropout=0.25):
+    def __init__(self, input_layer, hidden_layer=50, dropout=0.25):
 
         super(IbovModel, self).__init__()
         
         self.dropout = nn.Dropout(dropout)
-        self.fc1 = nn.Linear(window, hidden_layer)
+        self.fc1 = nn.Linear(input_layer, hidden_layer)
         self.fc2 = nn.Linear(hidden_layer, 1)
         
     def forward(self, input):
@@ -22,7 +22,7 @@ class IbovModel(nn.Module):
         return output
 
 
-def train(trainData, validData, model, criterion, optimizer, epochs):
+def train(model, trainData, validData, criterion, optimizer, epochs):
 
     loss_list = []
     valid_loss_list = []

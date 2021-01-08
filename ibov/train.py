@@ -41,8 +41,6 @@ def model_fn(model_dir):
     print("Done loading model.")
     return model
 
-def feature_eng(data):
-
 
 def loader(batch_size, training_dir, file):
 

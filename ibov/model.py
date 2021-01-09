@@ -1,7 +1,7 @@
 import pandas as pd
 from torch import nn
-import pylab as pl
-from IPython import display
+# import pylab as pl
+# from IPython import display
 
 class IbovModel(nn.Module):
 
@@ -64,11 +64,12 @@ def train(model, trainData, validData, criterion, optimizer, epochs):
         # Plot loss across epochs
         loss_list.append(loss_value)
         valid_loss_list.append(valid_loss_value)
-        pl.plot(loss_list, '-b', label="TrainLoss")
-        pl.plot(valid_loss_list, '-r', label="ValidLoss")
-        # if epoch == 1:
-        #     pl.legend(loc='upper right')
-        display.display(pl.gcf())
-        display.clear_output(wait=True)
+        print(valid_loss_value)
+        # pl.plot(loss_list, '-b', label="TrainLoss")
+        # pl.plot(valid_loss_list, '-r', label="ValidLoss")
+        # # if epoch == 1:
+        # #     pl.legend(loc='upper right')
+        # display.display(pl.gcf())
+        # display.clear_output(wait=True)
 
     model.eval()

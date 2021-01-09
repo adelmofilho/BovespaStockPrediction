@@ -9,6 +9,7 @@ import torch
 import torch.optim as optim
 import torch.utils.data
 from model import IbovModel, train
+import numpy as np
 
 def model_fn(model_dir):
     """Load the PyTorch model from the `model_dir` directory."""
@@ -24,41 +25,60 @@ def model_fn(model_dir):
 
     # Determine the device and construct the model.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = LSTMClassifier(model_info['embedding_dim'], model_info['hidden_dim'], model_info['vocab_size'])
+    model = IbovModel(input_layer=7)
 
     # Load the stored model parameters.
     model_path = os.path.join(model_dir, 'model.pth')
     with open(model_path, 'rb') as f:
         model.load_state_dict(torch.load(f))
 
-    # Load the saved word_dict.
-    word_dict_path = os.path.join(model_dir, 'word_dict.pkl')
-    with open(word_dict_path, 'rb') as f:
-        model.word_dict = pickle.load(f)
-
     model.to(device).eval()
 
     print("Done loading model.")
     return model
 
-def feature_eng(data):
+def create_lags(data, window):
+
+    y_list = list()
+    x_list = list()
+
+    for idx in range(data.shape[0]-window):
+        y = [data[idx]]
+        x = list(data[(idx+1):(window+idx+1)].values)
+        y_list.append(y)
+        x_list.append(x)
+    
+    return y_list, x_list
 
 
 def loader(batch_size, training_dir, file):
-
+    window = 7
     # Inicialization
     print("Get train data loader.")
 
     # Load data
     filepath = os.path.join(training_dir, file)
-    data = pd.read_csv(filepath, header=None, names=None)
+    dados_ibov = pd.read_csv(filepath)
 
-    train_y = torch.from_numpy(train_data[[0]].values).float().squeeze()
-    train_X = torch.from_numpy(train_data.drop([0], axis=1).values).long()
+    dados_ibov_train = dados_ibov.sort_values(by="date", ascending=False)[180:360].reset_index(drop="True")
+    dados_ibov_valid = dados_ibov.sort_values(by="date", ascending=False)[0:180].reset_index(drop="True")
 
-    train_ds = torch.utils.data.TensorDataset(train_X, train_y)
+    trainY, trainX = create_lags(data = dados_ibov_train["close"], window = window)
+    validY, validX = create_lags(data = dados_ibov_valid["close"], window = window)
 
-    return torch.utils.data.DataLoader(train_ds, batch_size=batch_size)
+    tensor_x = torch.Tensor(np.array(trainX))
+    tensor_y = torch.Tensor(np.array(trainY))
+
+    tensor_val_x = torch.Tensor(np.array(validX))
+    tensor_val_y = torch.Tensor(np.array(validY))
+
+    dataset = torch.utils.data.TensorDataset(tensor_x,tensor_y)
+    dataloader = torch.utils.data.DataLoader(dataset, batch_size=10)
+
+    val_dataset = torch.utils.data.TensorDataset(tensor_val_x,tensor_val_y)
+    val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=10)
+
+    return dataloader, val_dataloader
 
 if __name__ == '__main__':
 
@@ -84,7 +104,7 @@ if __name__ == '__main__':
                         help='Size of the input dimension (default: 7)')
 
     parser.add_argument('--hidden-layer',
-                        type=int, default=32, metavar='H',
+                        type=int, default=50, metavar='H',
                         help='Size of the hidden dimension (default: 32)')
 
     parser.add_argument('--dropout',
@@ -101,11 +121,8 @@ if __name__ == '__main__':
     parser.add_argument('--model-dir', 
                         type=str, default=os.environ['SM_MODEL_DIR'])
 
-    parser.add_argument('--train-dir', 
+    parser.add_argument('--data-dir', 
                         type=str, default=os.environ['SM_CHANNEL_TRAIN'])
-
-    parser.add_argument('--valid-dir', 
-                        type=str, default=os.environ['SM_CHANNEL_VALIDATION'])
 
     args = parser.parse_args()
 
@@ -113,9 +130,9 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     # Load the training e validation data
-    train_loader = loader(args.batch_size, args.train_dir, file="train.csv")
-    valid_loader = loader(args.batch_size, args.valid_dir, file="valid.csv")
-
+    train_loader, valid_loader = \
+        loader(args.batch_size, args.data_dir, file="train.csv")
+    
     # Build the model
     model = IbovModel(args.input_layer, args.hidden_layer, args.dropout)
 

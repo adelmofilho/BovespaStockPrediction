@@ -2,7 +2,7 @@
     "seed": 1903,
     "feature": {
         "split": 0.1,
-        "window": 1
+        "window": 3
     },
     "data": {
         "dir": "data",

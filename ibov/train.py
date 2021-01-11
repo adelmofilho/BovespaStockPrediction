@@ -4,16 +4,17 @@ import os
 import pickle
 import sys
 import sagemaker_containers
-import pandas as pd
 import torch
 import torch.optim as optim
 import torch.utils.data
-from model import IbovModel, train
+import pandas as pd
 import numpy as np
+from model import IbovModel, train
+
 
 def model_fn(model_dir):
     """Load the PyTorch model from the `model_dir` directory."""
-    print("Loading model.")
+    print("Loading model...")
 
     # First, load the parameters used to create the model.
     model_info = {}

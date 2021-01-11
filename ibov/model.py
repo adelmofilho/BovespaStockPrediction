@@ -3,11 +3,11 @@ from torch import nn
 # import pylab as pl
 # from IPython import display
 
-class IbovModel(nn.Module):
+class Ibovespa(nn.Module):
 
     def __init__(self, input_layer, hidden_layer=50, dropout=0.25):
 
-        super(IbovModel, self).__init__()
+        super(Ibovespa, self).__init__()
         
         self.dropout = nn.Dropout(dropout)
         self.fc1 = nn.Linear(input_layer, hidden_layer)

@@ -1,11 +1,16 @@
 {
+    "seed": 1903,
     "feature": {
-        "window": 2
+        "split": 0.1,
+        "window": 7
     },
     "data": {
-        "root": "data"
+        "dir": "data",
+        "history": "history.csv",
+        "train": "train.csv",
+        "test": "test.csv"
     },
-    "ibovespa": {
+    "ibov": {
         "ticker": "^BVSP",
         "stocks": [
             "ITUB4.SA",

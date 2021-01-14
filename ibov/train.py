@@ -11,8 +11,7 @@ import pandas as pd
 import numpy as np
 from model import model_lstm, train
 from utils import load_config
-from request import label_train_test
-from feature import create_lags, consolidate_features, create_delta_sign
+from feature import create_lags, consolidate_features, create_delta_sign, label_train_test
 from sklearn.preprocessing import MinMaxScaler
 
 def model_fn(model_dir):

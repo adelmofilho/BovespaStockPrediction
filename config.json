@@ -25,8 +25,6 @@
     "data": {
         "dir": "data",
         "file": "data.csv",
-        "train": "train.csv",
-        "test": "test.csv",
         "size": 1000
     },
     "ibov": {

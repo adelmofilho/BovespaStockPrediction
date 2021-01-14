@@ -1,14 +1,33 @@
 {
-    "seed": 1903,
+    "model": {
+        "dropout": 0.25,
+        "hidden_layer": 100,
+        "lr": 0.001,
+        "seed": 1903,
+        "epochs": 15
+    },
+    "sagemaker":
+    {   
+        "region":"us-east-1",
+        "bucket_prefx": "sagemaker/ibovespa",
+        "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643"
+    },
     "feature": {
-        "split": 0.1,
-        "window": 3
+        "split": {
+            "test": 0.05,
+            "valid": 0.05
+        },
+        "window": 3,
+        "variables": [
+            "lags"
+        ]
     },
     "data": {
         "dir": "data",
-        "history": "history.csv",
+        "file": "data.csv",
         "train": "train.csv",
-        "test": "test.csv"
+        "test": "test.csv",
+        "size": 1000
     },
     "ibov": {
         "ticker": "^BVSP",

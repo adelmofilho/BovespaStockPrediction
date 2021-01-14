@@ -1,13 +1,81 @@
 import pandas as pd
-from torch import nn
-import pylab as pl
-from IPython import display
+from torch import nn, manual_seed
+import torch
+import time
 
-class Ibovespa(nn.Module):
+
+def torch_data(df, target, variables, group_var, batch, group):
+    
+    data  = df[df[group_var] == group].reset_index()
+    
+    x_tensor = torch.Tensor(data[variables].values.tolist())
+    y_tensor = torch.Tensor(data[target])
+    
+    dataset = torch.utils.data.TensorDataset(x_tensor,y_tensor)
+    loader = torch.utils.data.DataLoader(dataset, batch_size=batch)
+    
+    return loader, x_tensor, y_tensor
+
+
+class model_fc2h(nn.Module):
 
     def __init__(self, input_layer, hidden_layer=50, dropout=0.25):
 
-        super(Ibovespa, self).__init__()
+        super(model_fc2h, self).__init__()
+        
+        self.dropout = nn.Dropout(dropout)
+        self.fc1 = nn.Linear(input_layer, hidden_layer)
+        self.fc2 = nn.Linear(input_layer, hidden_layer)
+        self.fc3 = nn.Linear(hidden_layer*2, 1)
+        
+        self.tanh = nn.Tanh()
+        
+    def forward(self, input):
+       
+        x_lags = input[:,0]
+        x_sign = input[:,1]
+        
+        out_lags = self.fc1(x_lags)
+        out_lags = self.dropout(out_lags)
+
+        out_sign = self.fc2(x_sign)
+        out_sign = self.tanh(out_lags)
+
+
+        output = self.fc3(torch.cat((out_lags, out_sign), 1))
+
+        return output
+    
+    
+class model_lstm(nn.Module):
+
+    def __init__(self, input_layer, hidden_layer, dropout):
+
+        super(model_lstm, self).__init__()
+        
+        self.hidden_layer = hidden_layer
+        
+        self.hidden_cell = (torch.zeros(1,1,self.hidden_layer),
+                            torch.zeros(1,1,self.hidden_layer))
+        
+        self.lstm = nn.LSTM(input_layer, hidden_layer)
+
+        self.linear = nn.Linear(hidden_layer, 1)
+        
+    def forward(self, input):
+       
+        x_lags = input
+        lstm_out, self.hidden_cell = self.lstm(x_lags.view(len(x_lags),1 , -1), self.hidden_cell)
+      
+        output = self.linear(lstm_out)
+        return lstm_out[:,:,0]
+
+
+class model_fc1h(nn.Module):
+
+    def __init__(self, input_layer, hidden_layer=50, dropout=0.25):
+
+        super(model_fc1h, self).__init__()
         
         self.dropout = nn.Dropout(dropout)
         self.fc1 = nn.Linear(input_layer, hidden_layer)
@@ -22,55 +90,44 @@ class Ibovespa(nn.Module):
         return output
 
 
-def train(model, trainData, validData, criterion, optimizer, epochs):
+def train(model, trainData, validData, criterion, optimizer, epochs, seed):
 
-    loss_list = []
-    valid_loss_list = []
+    manual_seed(seed)
 
     for epoch in range(epochs):
         
         # Restart model training status
         model.train()
-        # Restart loss value
-        loss_value = 0.0
-        valid_loss_value = 0.0
+        train_loss = 0.0
+        valid_loss = 0.0
         
+        # Training model
         for batch in trainData:
-            # Get training data
+            
             batch_x, batch_y = batch
-            # Zero the parameter gradients
             optimizer.zero_grad()
-            # Forward
             outputs = model(batch_x)
             loss = criterion(outputs, batch_y)
-            # Backward
-            loss.backward()
-            # Optimize
+            loss.backward(retain_graph=True)
             optimizer.step()
-            # Update Loss
-            loss_value += loss.item() / len(batch_y)
-            # Turn model to evaluation mode
-            model.eval()
-        # Predict over validation dataset
+            train_loss += loss.item()
+            
+        # Turn model to evaluation mode
+        model.eval()
+
+        # Evaluate model on validation dataset
         for batch in validData:
-            # Get validation data
+
             batch_x, batch_y = batch
-            # Prediction
             outputs = model(batch_x)
-            # Validation loss
-            valid_loss = criterion(outputs, batch_y)
-            # Update loss
-            valid_loss_value += valid_loss.item() / len(batch_y)
-        # Plot loss across epochs
-        loss_list.append(loss_value)
-        valid_loss_list.append(valid_loss_value)
-        # print(valid_loss_value)
-        pl.plot(loss_list, '-b', label="TrainLoss")
-        pl.plot(valid_loss_list, '-r', label="ValidLoss")
-        # if epoch == 1:
-        #     pl.legend(loc='upper right')
-        display.display(pl.gcf())
-        display.clear_output(wait=True)
-    print(f"training error: {loss_value}")
-    print(f"validation error: {valid_loss_value}")
+            loss = criterion(outputs, batch_y)
+            valid_loss += loss.item()
+
+        # Log epoch results
+        now = time.strftime("%H:%M:%S")
+        rnd_ltrn = round(train_loss, 3)
+        rnd_lvld = round(valid_loss, 3)
+        print("{}, epoch: {}, train: {}, valid: {}".format(now, epoch, rnd_ltrn, rnd_lvld))
+        
+    # Set model to evaluation mode
     model.eval()

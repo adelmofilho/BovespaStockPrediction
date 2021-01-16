@@ -4,9 +4,10 @@ import torch
 import time
 
 
-def torch_data(df, target, variables, group_var, batch, group):
+def torch_data(data, target, variables, group_var, batch, group):
     
-    data  = df[df[group_var] == group].reset_index()
+    if group is not None:
+        data  = data[data[group_var] == group].reset_index()
     
     x_tensor = torch.Tensor(data[variables].values.tolist())
     y_tensor = torch.Tensor(data[target])

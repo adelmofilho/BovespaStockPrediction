@@ -9,7 +9,7 @@ import torch.optim as optim
 import torch.utils.data
 import pandas as pd
 import numpy as np
-from model import model_lstm, train
+from model import model_lstm, train, torch_data
 from utils import load_config
 from feature import create_lags, consolidate_features, create_delta_sign, label_train_test
 from sklearn.preprocessing import MinMaxScaler
@@ -28,7 +28,9 @@ def model_fn(model_dir):
 
     # Determine the device and construct the model.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = IbovModel(input_layer=7)
+    model = model_lstm(input_layer=model_info["input_layer"], 
+                        hidden_layer=model_info["hidden_layer"], 
+                        dropout=model_info["dropout"])
 
     # Load the stored model parameters.
     model_path = os.path.join(model_dir, 'model.pth')
@@ -41,14 +43,25 @@ def model_fn(model_dir):
     return model
 
 
-def loader(data_dir, config):
+def loader(data_dir, config_file):
 
-    config = load_config()
+    config = load_config(os.path.join(config_file, "config.json"))
+    
+    # Feature Engineering Configs
+    window = config.get("feature").get("window")
+    variables = config.get("feature").get("variables")
+    test_split = config.get("feature").get("split").get("test")
+    valid_split = config.get("feature").get("split").get("valid")
+
+    # Data Configs
+    #data_dir = config.get("data").get("dir")
+    ibov_ticker = config.get("ibov").get("ticker")
     filename = config.get("data").get("file")
+    data_size = config.get("data").get("size")
+    ascending = config.get("data").get("ascending") == 'True'
 
     # Load data
-    filepath = os.path.join(data_dir, filename)
-    dados = pd.read_csv(filepath)
+    dados = pd.read_csv(os.path.join(data_dir, "data.csv"))
 
     # Data preparation
     dados = label_train_test(dados, split=test_split, split_valid=valid_split)
@@ -57,9 +70,9 @@ def loader(data_dir, config):
     scaler = MinMaxScaler()
     dados[['close']] = scaler.fit_transform(dados[['close']])
 
-    ibov_lags_df = create_lags(ibovespa, window=window, var="close", index="date")
+    ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
     ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
-    master_table = consolidate_features(ibovespa, "date", ibov_lags_df, ibov_delta_sign_df)
+    master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
     
     train_loader, train_x_tensor, train_y_tensor = \
         torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="train")
@@ -132,7 +145,7 @@ if __name__ == '__main__':
     optimizer = optim.Adam(model.parameters())
     criterion = torch.nn.L1Loss()
 
-    train(model, train_loader, valid_loader, criterion, optimizer, args.epochs)
+    train(model, train_loader, valid_loader, criterion, optimizer, args.epochs, args.seed)
 
     # Save the parameters used to construct the model
     model_info_path = os.path.join(args.model_dir, 'model_info.pth')

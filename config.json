@@ -1,10 +1,10 @@
 {
     "model": {
         "dropout": 0.25,
-        "hidden_layer": 100,
+        "hidden_layer": 50,
         "lr": 0.001,
         "seed": 1903,
-        "epochs": 15
+        "epochs": 25
     },
     "sagemaker":
     {   
@@ -14,10 +14,10 @@
     },
     "feature": {
         "split": {
-            "test": 0.05,
-            "valid": 0.05
+            "test": 0.1,
+            "valid": 0.1
         },
-        "window": 3,
+        "window": 7,
         "variables": [
             "lags"
         ]
@@ -25,7 +25,8 @@
     "data": {
         "dir": "data",
         "file": "data.csv",
-        "size": 1000
+        "size": 365,
+        "ascending": "True"
     },
     "ibov": {
         "ticker": "^BVSP",

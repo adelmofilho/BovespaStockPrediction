@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import MinMaxScaler
 
 
 def normalize_target(dados, target):
 
-    scaler = MinMaxScaler()
-    dados[[target]] = scaler.fit_transform(dados[[target]])
+    maximo = dados[[target]].values.max()
+    minimo = dados[[target]].values.min()
+
+    dados[[target]] = (dados[[target]] - minimo)/(maximo-minimo)
 
     return dados
 

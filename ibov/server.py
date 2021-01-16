@@ -11,11 +11,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data
-from sklearn.preprocessing import MinMaxScaler
 
 from model import model_lstm, train, torch_data
 from utils import load_config
-from feature import create_lags, consolidate_features, create_delta_sign, label_train_test
+from feature import normalize_target, create_lags, consolidate_features, create_delta_sign, label_train_test
 
 
 def model_fn(model_dir):
@@ -45,30 +44,34 @@ def model_fn(model_dir):
 
     print("Done loading model.")
     return model
-
+    
 
 def input_fn(serialized_input_data, content_type):
     print('Deserializing the input data.')
     if content_type == 'text/csv':
-        dados = pd.read_csv(io.StringIO(serialized_input_data.decode('utf-8'), sep=","))
+        print(type(serialized_input_data))
+        dados = pd.read_csv(io.StringIO(serialized_input_data), sep=",")
 
-        scaler = MinMaxScaler()
-        dados[['close']] = scaler.fit_transform(dados[['close']])
-
+        dados = normalize_target(dados, "close")
+        window = 7
         ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
         ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
         master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
         
         train_loader, train_x_tensor, train_y_tensor = \
-            torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group=None)
+            torch_data(master_table, target="target", variables=["lags"], group_var="group", batch=50, group=None)
 
-        return train_loader
+        return train_x_tensor
     raise Exception('Requested unsupported ContentType in content_type: ' + content_type)
 
 
 def output_fn(prediction_output, accept):
     print('Serializing the generated output.')
-    return str(prediction_output)
+    print(type(prediction_output))
+    print(prediction_output)
+    saida = np.array(prediction_output).flatten().tolist()
+
+    return str(saida)
 
 def predict_fn(input_data, model):
     print('Inferring sentiment of input data.')
@@ -79,6 +82,6 @@ def predict_fn(input_data, model):
     # TODO: Compute the result of applying the model to the input data. The variable `result` should
     #       be a numpy array which contains a single integer which is either 1 or 0
 
-    result = model(input_data).detach().numpy() 
+    result = model(input_data).detach().numpy()
 
     return result

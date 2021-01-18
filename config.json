@@ -1,9 +1,9 @@
 {
     "deploy":{
 
-        "codename": "first-fly",
+        "codename": "first-fly2",
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643",
-        "training_job_name": "sagemaker-pytorch-2021-01-17-02-36-21-851",
+        "training_job_name": "sagemaker-pytorch-2021-01-17-19-45-55-738",
         "instance_count": 1,
         "instance_type": "ml.t2.medium"
     },
@@ -21,7 +21,7 @@
         "hidden_layer": 50,
         "lr": 0.001,
         "seed": 1903,
-        "epochs": 25
+        "epochs":5
     },
     "sagemaker":
     {   

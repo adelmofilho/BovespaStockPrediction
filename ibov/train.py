@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 from model import model_lstm, train, torch_data
 from utils import load_config
-from feature import normalize_target, create_lags, consolidate_features, create_delta_sign, label_train_test
+from feature import Normalize, create_lags, consolidate_features, create_delta_sign, label_train_test
 
 
 
@@ -40,49 +40,47 @@ def model_fn(model_dir):
         model.load_state_dict(torch.load(f))
 
     model.to(device).eval()
-
+    model.maximo = model_info["maximo"]
+    model.minimo = model_info["minimo"]
+    model.window = model_info["input_layer"]
     print("Done loading model.")
     return model
 
 
 def input_fn(serialized_input_data, content_type):
     print('Deserializing the input data.')
-    if content_type == 'text/csv':
-        print(type(serialized_input_data))
+    if content_type == 'text/csv':  
+
         dados = pd.read_csv(io.StringIO(serialized_input_data), sep=",")
 
-        dados = normalize_target(dados, "close")
-        window = 7
-        ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
-        ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
-        master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
-        
-        train_loader, train_x_tensor, train_y_tensor = \
-            torch_data(master_table, target="target", variables=["lags"], group_var="group", batch=50, group=None)
-
-        return train_x_tensor
+        return dados
     raise Exception('Requested unsupported ContentType in content_type: ' + content_type)
 
 
 def output_fn(prediction_output, accept):
     print('Serializing the generated output.')
-    print(type(prediction_output))
-    print(prediction_output)
     saida = np.array(prediction_output).flatten().tolist()
 
     return str(saida)
 
 
 def predict_fn(input_data, model):
-    print('Inferring sentiment of input data.')
+    dados = input_data
+    scaler = Normalize()
+    scaler.load_configs(maximo=model.maximo, minimo=model.minimo)
 
-    # Make sure to put the model into evaluation mode
+    dados[["close"]] = scaler.transform(dados[["close"]])
+    window = model.window
+    ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
+    ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
+    master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
+
+    train_loader, train_x_tensor, train_y_tensor = \
+        torch_data(master_table, target="target", variables=["lags"], group_var="group", batch=50, group=None)
+
     model.eval()
 
-    # TODO: Compute the result of applying the model to the input data. The variable `result` should
-    #       be a numpy array which contains a single integer which is either 1 or 0
-
-    result = model(input_data).detach().numpy()
+    result = scaler.denormalize(model(train_x_tensor).detach().numpy())
 
     return result   
 
@@ -111,7 +109,10 @@ def loader(data_dir, config_file):
     dados = label_train_test(dados, split=test_split, split_valid=valid_split)
     
     # Feature Engineering
-    dados = normalize_target(dados, "close")
+
+    scaler = Normalize()
+    scaler.fit(dados[dados["group"]=="train"][["close"]])
+    dados[["close"]] = scaler.transform(dados[["close"]])
 
     ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
     ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
@@ -123,7 +124,7 @@ def loader(data_dir, config_file):
     valid_loader, valid_x_tensor, valid_y_tensor = \
         torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="valid")
 
-    return train_loader, valid_loader
+    return train_loader, valid_loader, scaler
 
 
 if __name__ == '__main__':
@@ -179,7 +180,7 @@ if __name__ == '__main__':
     torch.manual_seed(args.seed)
 
     # Load the training e validation data
-    train_loader, valid_loader = loader(args.data_dir, args.config)
+    train_loader, valid_loader, scaler = loader(args.data_dir, args.config)
 
     # Build the model
     model = model_lstm(args.input_layer, args.hidden_layer, args.dropout)
@@ -199,7 +200,9 @@ if __name__ == '__main__':
             'seed': args.seed,
             'input_layer': args.input_layer,
             'hidden_layer': args.hidden_layer,
-            'dropout': args.dropout
+            'dropout': args.dropout,
+            "maximo": scaler.maximo,
+            "minimo": scaler.minimo
             }
         torch.save(model_info, f)
 

@@ -1,15 +1,34 @@
 import pandas as pd
 import numpy as np
 
+class Normalize():
 
-def normalize_target(dados, target):
+    def __init__(self, type="minmax"):
 
-    maximo = dados[[target]].values.max()
-    minimo = dados[[target]].values.min()
+        self.type = type
 
-    dados[[target]] = (dados[[target]] - minimo)/(maximo-minimo)
+    def fit(self, data):
 
-    return dados
+        self.data = data
+        self.maximo = data.values.max()
+        self.minimo = data.values.min()
+    
+    def transform(self, data):
+
+        self.transformed = (data - self.minimo)/(self.maximo - self.minimo)
+
+        return self.transformed
+
+    def denormalize(self, data):
+
+        self.detransformed = data*(self.maximo - self.minimo) + self.minimo
+
+        return self.detransformed
+
+    def load_configs(self, maximo, minimo):
+
+        self.maximo = maximo
+        self.minimo = minimo
 
 
 def label_train_test(df, split, split_valid=None, ascending=True):

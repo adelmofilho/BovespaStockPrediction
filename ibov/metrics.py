@@ -33,8 +33,8 @@ def model_prediction(model, x_tensor, y_tensor):
 
 def benchmark_model(test_y_tensor, valid_y_tensor):
 
-    true = np.array(np.hstack(test_y_tensor).tolist())
-    pred = np.array(list(np.array(np.hstack(test_y_tensor).tolist())[1:]) + list(np.array(valid_y_tensor[0])))
+    true = np.array(list(np.array(np.hstack(test_y_tensor).tolist())))
+    pred = np.array(list(np.array(valid_y_tensor[-1])) + list(np.array(np.hstack(test_y_tensor).tolist())[:-1]))
 
     return true, pred
 

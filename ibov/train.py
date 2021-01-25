@@ -10,7 +10,7 @@ import torch.optim as optim
 import torch.utils.data
 import pandas as pd
 import numpy as np
-from model import model_lstm, train, torch_data
+from model import Model, train, torch_data
 from utils import load_config
 from feature import Normalize, create_lags, consolidate_features, create_delta_sign, label_train_test
 
@@ -30,7 +30,7 @@ def model_fn(model_dir):
 
     # Determine the device and construct the model.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model_lstm(input_layer=model_info["input_layer"], 
+    model = Model(input_layer=model_info["input_layer"], 
                         hidden_layer=model_info["hidden_layer"], 
                         dropout=model_info["dropout"])
 
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     train_loader, valid_loader, scaler = loader(args.data_dir, args.config)
 
     # Build the model
-    model = model_lstm(args.input_layer, args.hidden_layer, args.dropout)
+    model = Model(args.input_layer, args.hidden_layer, args.dropout)
 
     # Train the model.
     optimizer = optim.Adam(model.parameters())

@@ -18,10 +18,10 @@
 
     "model": {
         "dropout": 0.25,
-        "hidden_layer": 50,
+        "hidden_layer": 200,
         "lr": 0.001,
         "seed": 1903,
-        "epochs":5
+        "epochs":50
     },
     "sagemaker":
     {   
@@ -36,7 +36,7 @@
         },
         "window": 7,
         "variables": [
-            "lags"
+            "lags", "delta_sign"
         ]
     },
     "data": {

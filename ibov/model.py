@@ -88,6 +88,27 @@ class model_fc1h(nn.Module):
         x = self.dropout(x)
         output = self.fc2(x)
 
+        return output[:,:,0]
+
+
+class Model(nn.Module):
+
+    def __init__(self, input_layer, hidden_layer=50, dropout=0.25):
+
+        super(Model, self).__init__()
+        
+        self.dropout = nn.Dropout(dropout)
+        self.fc1 = nn.Linear(input_layer, hidden_layer)
+        self.fc2 = nn.Linear(hidden_layer, 1)
+        
+    def forward(self, input):
+
+        x = input[:,0,:]
+
+        x = self.fc1(x)
+        x = self.dropout(x)
+        output = self.fc2(x)
+
         return output
 
 

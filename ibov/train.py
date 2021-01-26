@@ -43,6 +43,7 @@ def model_fn(model_dir):
     model.maximo = model_info["maximo"]
     model.minimo = model_info["minimo"]
     model.window = model_info["input_layer"]
+    model.config = model_info["config"]
     print("Done loading model.")
     return model
 
@@ -65,18 +66,19 @@ def output_fn(prediction_output, accept):
 
 
 def predict_fn(input_data, model):
-    dados = input_data
-    scaler = Normalize()
-    scaler.load_configs(maximo=model.maximo, minimo=model.minimo)
-
-    dados[["close"]] = scaler.transform(dados[["close"]])
-    window = model.window
-    ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
-    ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
-    master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
+   
+    master_table, scaler = feature_engineer(input_data,
+                                            model.config, 
+                                            mode="train", 
+                                            model=model)
 
     train_loader, train_x_tensor, train_y_tensor = \
-        torch_data(master_table, target="target", variables=["lags"], group_var="group", batch=50, group=None)
+        torch_data(master_table, 
+                   target="target", 
+                   variables=model.config["feature"]["variables"], 
+                   group_var="group", 
+                   batch=50, 
+                   group=None)
 
     model.eval()
 
@@ -86,19 +88,6 @@ def predict_fn(input_data, model):
 
 
 def feature_engineer(dados, config, mode, model=None):
-
-    
-    # Feature Engineering Configs
-    window = config.get("feature").get("window")
-    variables = config.get("feature").get("variables")
-   
-
-    # Data Configs
-    #data_dir = config.get("data").get("dir")
-    ibov_ticker = config.get("ibov").get("ticker")
-    filename = config.get("data").get("file")
-    data_size = config.get("data").get("size")
-    ascending = config.get("data").get("ascending") == 'True'
 
     # Target Normalization
 
@@ -112,12 +101,19 @@ def feature_engineer(dados, config, mode, model=None):
         raise Exception("mode does not exist")
 
     dados[["close"]] = scaler.transform(dados[["close"]])
-    
 
     # Feature Engineering   
 
-    ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
-    ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
+    ibov_lags_df = create_lags(dados, 
+                               window=config["feature"]["window"], 
+                               var="close", 
+                               index="date")
+
+    ibov_delta_sign_df = create_delta_sign(ibov_lags_df, 
+                                           var="lags", 
+                                           index="date", 
+                                           window=config["feature"]["window"])
+
     master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
 
     return master_table, scaler
@@ -184,16 +180,29 @@ if __name__ == '__main__':
                             split=config["feature"]["split"]["test"], 
                             split_valid=config["feature"]["split"]["valid"])
 
+    master_table, scaler = feature_engineer(dados, 
+                                            config, 
+                                            mode="train", 
+                                            model=None)
+
     # Load the training e validation data
 
+
     train_loader, train_x_tensor, train_y_tensor = \
-        torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="train")
+        torch_data(master_table, 
+                   target="target", 
+                   variables=config["feature"]["variables"], 
+                   group_var="group", 
+                   batch=50, 
+                   group="train")
 
     valid_loader, valid_x_tensor, valid_y_tensor = \
-        torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="valid")
-
-
-    train_loader, valid_loader, scaler = loader(args.data_dir)
+        torch_data(master_table, 
+                   target="target", 
+                   variables=config["feature"]["variables"],
+                   group_var="group", 
+                   batch=50, 
+                   group="valid")
 
     # Build the model
     model = Model(args.input_layer, args.hidden_layer, args.dropout)
@@ -215,7 +224,8 @@ if __name__ == '__main__':
             'hidden_layer': args.hidden_layer,
             'dropout': args.dropout,
             "maximo": scaler.maximo,
-            "minimo": scaler.minimo 
+            "minimo": scaler.minimo,
+            "config": config
             }
         torch.save(model_info, f)
 

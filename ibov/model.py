@@ -2,7 +2,9 @@ import pandas as pd
 from torch import nn, manual_seed
 import torch
 import time
-
+import os
+import random
+import numpy as np
 
 def torch_data(data, target, variables, group_var, batch, group):
     
@@ -96,25 +98,36 @@ class Model(nn.Module):
     def __init__(self, input_layer, hidden_layer=50, dropout=0.25):
 
         super(Model, self).__init__()
-        
+        self.hidden_layer = hidden_layer
         self.dropout = nn.Dropout(dropout)
         self.fc1 = nn.Linear(input_layer, hidden_layer)
-        self.fc2 = nn.Linear(hidden_layer, 1)
+        self.fc2 = nn.Linear(hidden_layer+hidden_layer, 1)
+
+        self.hidden_cell = (torch.zeros(1,1,self.hidden_layer),
+                            torch.zeros(1,1,self.hidden_layer))
+        
+        self.lstm = nn.LSTM(input_layer, hidden_layer)
         
     def forward(self, input):
 
         x = input[:,0,:]
-
+        z = input[:,1,:]
         x = self.fc1(x)
         x = self.dropout(x)
-        output = self.fc2(x)
 
-        return output
+        lstm_out, self.hidden_cell = self.lstm(z.view(len(z),1 , -1), self.hidden_cell)
+        ds = torch.cat((x,lstm_out[:,0,:]),1)
+        output = self.fc2(ds)
+
+        return output   
 
 
 def train(model, trainData, validData, criterion, optimizer, epochs, seed):
 
     manual_seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    random.seed(seed)      
 
     for epoch in range(epochs):
         

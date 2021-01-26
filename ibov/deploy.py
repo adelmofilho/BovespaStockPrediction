@@ -50,6 +50,18 @@ def get_deploy_config(config):
     
     return response
 
+def define_model(deploy_config):
+
+    codename = deploy_config.get("codename")
+    
+    client  = boto3.client("sagemaker")
+
+    model = client.create_model(ModelName=codename,
+                                PrimaryContainer=deploy_config.get("primary_container"),
+                                ExecutionRoleArn=deploy_config.get("role"))
+
+    return model
+
 
 def build_endpoint(deploy_config):
     

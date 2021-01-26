@@ -85,15 +85,13 @@ def predict_fn(input_data, model):
     return result   
 
 
-def loader(data_dir, config_file):
+def feature_engineer(dados, config, mode, model=None):
 
-    config = load_config(os.path.join(config_file, "config.json"))
     
     # Feature Engineering Configs
     window = config.get("feature").get("window")
     variables = config.get("feature").get("variables")
-    test_split = config.get("feature").get("split").get("test")
-    valid_split = config.get("feature").get("split").get("valid")
+   
 
     # Data Configs
     #data_dir = config.get("data").get("dir")
@@ -102,29 +100,27 @@ def loader(data_dir, config_file):
     data_size = config.get("data").get("size")
     ascending = config.get("data").get("ascending") == 'True'
 
-    # Load data
-    dados = pd.read_csv(os.path.join(data_dir, "data.csv"))
-
-    # Data preparation
-    dados = label_train_test(dados, split=test_split, split_valid=valid_split)
-    
-    # Feature Engineering
+    # Target Normalization
 
     scaler = Normalize()
-    scaler.fit(dados[dados["group"]=="train"][["close"]])
+
+    if mode == "train":
+        scaler.fit(dados[dados["group"]=="train"][["close"]])
+    elif mode == "predict":
+        scaler.load_configs(maximo=model.maximo, minimo=model.minimo)
+    else:
+        raise Exception("mode does not exist")
+
     dados[["close"]] = scaler.transform(dados[["close"]])
+    
+
+    # Feature Engineering   
 
     ibov_lags_df = create_lags(dados, window=window, var="close", index="date")
     ibov_delta_sign_df = create_delta_sign(ibov_lags_df, var="lags", index="date", window=window)
     master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
-    
-    train_loader, train_x_tensor, train_y_tensor = \
-        torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="train")
 
-    valid_loader, valid_x_tensor, valid_y_tensor = \
-        torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="valid")
-
-    return train_loader, valid_loader, scaler
+    return master_table, scaler
 
 
 if __name__ == '__main__':
@@ -176,11 +172,28 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Set random seed
-    torch.manual_seed(args.seed)
+    # Read data and configurations
+
+    config = load_config(os.path.join(args.config, "config.json"))
+
+    dados = pd.read_csv(os.path.join(args.data_dir, "data.csv"))
+
+    # Train-Test split
+
+    dados = label_train_test(dados, 
+                            split=config["feature"]["split"]["test"], 
+                            split_valid=config["feature"]["split"]["valid"])
 
     # Load the training e validation data
-    train_loader, valid_loader, scaler = loader(args.data_dir, args.config)
+
+    train_loader, train_x_tensor, train_y_tensor = \
+        torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="train")
+
+    valid_loader, valid_x_tensor, valid_y_tensor = \
+        torch_data(master_table, target="target", variables=variables, group_var="group", batch=50, group="valid")
+
+
+    train_loader, valid_loader, scaler = loader(args.data_dir)
 
     # Build the model
     model = Model(args.input_layer, args.hidden_layer, args.dropout)
@@ -202,7 +215,7 @@ if __name__ == '__main__':
             'hidden_layer': args.hidden_layer,
             'dropout': args.dropout,
             "maximo": scaler.maximo,
-            "minimo": scaler.minimo
+            "minimo": scaler.minimo 
             }
         torch.save(model_info, f)
 

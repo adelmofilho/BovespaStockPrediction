@@ -69,7 +69,7 @@ def predict_fn(input_data, model):
    
     master_table, scaler = feature_engineer(input_data,
                                             model.config, 
-                                            mode="train", 
+                                            mode="predict", 
                                             model=model)
 
     train_loader, train_x_tensor, train_y_tensor = \

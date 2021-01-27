@@ -1,9 +1,9 @@
 {
     "deploy":{
 
-        "codename": "sagemaker-pytorch-2021-01-26-15-19-44-976",
+        "codename": "sagemaker-pytorch-2021-01-26-18-22-31-454",
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643",
-        "training_job_name": "sagemaker-pytorch-2021-01-26-15-19-44-976",
+        "training_job_name": "sagemaker-pytorch-2021-01-26-18-22-31-454 ",
         "instance_count": 1,
         "instance_type": "ml.t2.medium"
     },

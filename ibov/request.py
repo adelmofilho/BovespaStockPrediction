@@ -13,5 +13,5 @@ def get_history(ticker, data_size, ascending):
      else:
           df = df.head(data_size).reset_index(drop=False)
           
-     return df
+     return df[["date", "close"]]
 

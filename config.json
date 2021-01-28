@@ -29,25 +29,18 @@
         "bucket_prefx": "sagemaker/ibovespa",
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643"
     },
-    "feature": {
-        "split": {
-            "test": 0.1,
-            "valid": 0.1
-        },
-        "window": 7,
-        "variables": [
-            "lags", "delta_sign"
-        ]
-    },
+
     "data": {
         "dir": "data",
-        "file": "data.csv",
-        "size": 365,
-        "ascending": "True"
-    },
-    "ibov": {
-        "ticker": "^BVSP",
+        "file": "data.csv"},
+
+
+
+    "data_collection": {
+
+        "period": 365,
         "stocks": [
+            "^BVSP",
             "ITUB4.SA",
             "BBDC4.SA",
             "VALE3.SA",
@@ -57,7 +50,31 @@
             "BBAS3.SA",
             "B3SA3.SA",
             "ITSA4.SA"
-        ],
-        "ref": "https://www.onze.com.br/blog/acoes-ibovespa/"
+        ]
+    },
+
+    "data_preparation": {
+
+        "split_size": {
+
+            "test": 0.1,
+            "validation": 0.1
+        }
+    },
+
+    "feature_engineering": {
+        "window": 7
+        
+    },
+
+    "model_training": {
+        "target": "target",
+        "variables": [
+            "lags", "delta_sign", "weekday_vector",
+       "lag_pct_^BVSP", "lag_pct_ITUB4", "lag_pct_BBDC4", "lag_pct_VALE3",
+       "lag_pct_PETR4", "lag_pct_PETR3", "lag_pct_ABEV3", "lag_pct_BBAS3",
+       "lag_pct_B3SA3", "lag_pct_ITSA4"
+        ]
+
     }
 }

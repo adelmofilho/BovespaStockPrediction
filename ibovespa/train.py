@@ -84,39 +84,7 @@ def predict_fn(input_data, model):
 
     result = scaler.denormalize(model(train_x_tensor).detach().numpy())
 
-    return result   
-
-
-def feature_engineer(dados, config, mode, model=None):
-
-    # Target Normalization
-
-    scaler = Normalize()
-
-    if mode == "train":
-        scaler.fit(dados[dados["group"]=="train"][["close"]])
-    elif mode == "predict":
-        scaler.load_configs(maximo=model.maximo, minimo=model.minimo)
-    else:
-        raise Exception("mode does not exist")
-
-    dados[["close"]] = scaler.transform(dados[["close"]])
-
-    # Feature Engineering   
-
-    ibov_lags_df = create_lags(dados, 
-                               window=config["feature"]["window"], 
-                               var="close", 
-                               index="date")
-
-    ibov_delta_sign_df = create_delta_sign(ibov_lags_df, 
-                                           var="lags", 
-                                           index="date", 
-                                           window=config["feature"]["window"])
-
-    master_table = consolidate_features(dados, "date", ibov_lags_df, ibov_delta_sign_df)
-
-    return master_table, scaler
+    return result
 
 
 if __name__ == '__main__':

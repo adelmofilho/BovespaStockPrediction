@@ -1,43 +1,21 @@
 {
-    "deploy":{
-
+    "deploy": {
         "codename": "sagemaker-pytorch-2021-01-26-18-22-31-454",
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643",
         "training_job_name": "sagemaker-pytorch-2021-01-26-18-22-31-454 ",
         "instance_count": 1,
         "instance_type": "ml.t2.medium"
     },
-
-    "scoring":{
-
+    "scoring": {
         "bucket": "udacity-capstone-977053370764",
         "key": "data.csv"
     },
-
-
-
-    "model": {
-        "dropout": 0.25,
-        "hidden_layer": 50,
-        "lr": 0.001,
-        "seed": 1903,
-        "epochs":50
-    },
-    "sagemaker":
-    {   
-        "region":"us-east-1",
+    "sagemaker": {
+        "region": "us-east-1",
         "bucket_prefx": "sagemaker/ibovespa",
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643"
     },
-
-    "data": {
-        "dir": "data",
-        "file": "data.csv"},
-
-
-
     "data_collection": {
-
         "period": 365,
         "stocks": [
             "^BVSP",
@@ -52,29 +30,40 @@
             "ITSA4.SA"
         ]
     },
-
     "data_preparation": {
-
         "split_size": {
-
             "test": 0.1,
             "validation": 0.1
         }
     },
-
     "feature_engineering": {
-        "window": 7
-        
+        "window": 7,
+        "feature_file": "data/data.csv",
+        "scaler_file": "data/scaler.json"
     },
-
     "model_training": {
         "target": "target",
         "variables": [
-            "lags", "delta_sign", "weekday_vector",
-       "lag_pct_^BVSP", "lag_pct_ITUB4", "lag_pct_BBDC4", "lag_pct_VALE3",
-       "lag_pct_PETR4", "lag_pct_PETR3", "lag_pct_ABEV3", "lag_pct_BBAS3",
-       "lag_pct_B3SA3", "lag_pct_ITSA4"
-        ]
-
+            "lags",
+            "delta_sign",
+            "weekday_vector",
+            "lag_pct_IBOV",
+            "lag_pct_ITUB4",
+            "lag_pct_BBDC4",
+            "lag_pct_VALE3",
+            "lag_pct_PETR4",
+            "lag_pct_PETR3",
+            "lag_pct_ABEV3",
+            "lag_pct_BBAS3",
+            "lag_pct_B3SA3",
+            "lag_pct_ITSA4"
+        ],
+        "hyperparameters": {
+            "dropout": 0.25,
+            "hidden_layer": 75,
+            "lr": 0.001,
+            "seed": 1903,
+            "epochs": 30
+        }
     }
 }

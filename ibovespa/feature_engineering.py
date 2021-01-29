@@ -65,8 +65,8 @@ class Normalize():
     def fit(self, data):
 
         self.data = data
-        self.maximo = data.values.max()
-        self.minimo = data.values.min()
+        self.maximo = data.values.max() + data.values.max()*0.1
+        self.minimo = data.values.min() - data.values.min()*0.1
     
     def transform(self, data):
 
@@ -96,7 +96,7 @@ def create_day_change(df, window):
     
     
     data = last_day_stock_diff.sort_values(by="date", ascending=False).reset_index(drop=True)
-    df = pd.DataFrame(data[index][:-window], columns = [index])
+    df = pd.DataFrame(data["date"][:-window], columns = ["date"])
 
     for var in variables:    
         x_list = list()

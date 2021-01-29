@@ -2,6 +2,8 @@ def prepare_data(df, split, split_valid=None):
 
     df = split_train_test(df, split=split, split_valid=split_valid)
 
+    df.rename(columns={"^BVSP": "IBOV"}, inplace=True)
+
     return df
 
 

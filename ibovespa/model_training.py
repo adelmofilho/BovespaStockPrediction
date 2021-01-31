@@ -11,7 +11,7 @@ from torch.optim import Adam
 
 def read_feature_table(path, target, variables):
     
-    feature_table = pd.read_csv("data/data.csv")
+    feature_table = pd.read_csv(path)
     for var in [target]+variables:
         feature_table[var] = feature_table[var].apply(literal_eval)
         

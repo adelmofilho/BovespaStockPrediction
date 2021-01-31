@@ -2,7 +2,7 @@
     "deploy": {
         "codename": "sagemaker-pytorch-2021-01-26-18-22-31-454",
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643",
-        "training_job_name": "sagemaker-pytorch-2021-01-26-18-22-31-454",
+        "training_job_name": "sagemaker-pytorch-2021-01-26-18-22-31-454 ",
         "instance_count": 1,
         "instance_type": "ml.t2.medium"
     },
@@ -16,7 +16,7 @@
         "role": "arn:aws:iam::977053370764:role/service-role/AmazonSageMaker-ExecutionRole-20201202T141643"
     },
     "data_collection": {
-        "period": 365,
+        "period": 8,
         "stocks": [
             "^BVSP",
             "ITUB4.SA",

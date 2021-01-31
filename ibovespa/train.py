@@ -10,9 +10,9 @@ import torch.optim as optim
 import torch.utils.data
 import pandas as pd
 import numpy as np
-from model import Model, train, torch_data
 from utils import load_config
-from feature import Normalize, create_lags, consolidate_features, create_delta_sign, label_train_test
+from model_training import train_model, read_feature_table, torch_data
+from feature_engineering import Normalize
 
 
 
@@ -28,11 +28,14 @@ def model_fn(model_dir):
 
     print("model_info: {}".format(model_info))
 
+    input_layer = model_info["config"]["model_training"]["hyperparameters"]["input_layer"]
+    hidden_layer = model_info["config"]["model_training"]["hyperparameters"]["hidden_layer"]
+    dropout = model_info["config"]["model_training"]["hyperparameters"]["dropout"]
     # Determine the device and construct the model.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = Model(input_layer=model_info["input_layer"], 
-                        hidden_layer=model_info["hidden_layer"], 
-                        dropout=model_info["dropout"])
+    model = Model(input_layer=input_layer, 
+                        hidden_layer=hidden_layer, 
+                        dropout=dropout)
 
     # Load the stored model parameters.
     model_path = os.path.join(model_dir, 'model.pth')
@@ -67,13 +70,11 @@ def output_fn(prediction_output, accept):
 
 def predict_fn(input_data, model):
    
-    master_table, scaler = feature_engineer(input_data,
-                                            model.config, 
-                                            mode="predict", 
-                                            model=model)
+    scaler = Normalize()
+    scaler.load_configs(maximo=model.maximo, minimo=model.minimo)
 
     train_loader, train_x_tensor, train_y_tensor = \
-        torch_data(master_table, 
+        torch_data(input_data, 
                    target="target", 
                    variables=model.config["feature"]["variables"], 
                    group_var="group", 
@@ -106,17 +107,17 @@ if __name__ == '__main__':
                         help='random seed (default: 42)')
 
     # Model Parameters
-    parser.add_argument('--input-layer',
-                        type=int, default=7, metavar='H',
-                        help='Size of the input dimension (default: 7)')
+    # parser.add_argument('--input-layer',
+    #                     type=int, default=7, metavar='H',
+    #                     help='Size of the input dimension (default: 7)')
 
-    parser.add_argument('--hidden-layer',
-                        type=int, default=50, metavar='H',
-                        help='Size of the hidden dimension (default: 32)')
+    # parser.add_argument('--hidden-layer',
+    #                     type=int, default=50, metavar='H',
+    #                     help='Size of the hidden dimension (default: 32)')
 
-    parser.add_argument('--dropout',
-                        type=float, default=0.25, metavar='D',
-                        help='Dropout rate (default: 0.25)')
+    # parser.add_argument('--dropout',
+    #                     type=float, default=0.25, metavar='D',
+    #                     help='Dropout rate (default: 0.25)')
 
     # SageMaker Parameters
     parser.add_argument('--hosts', 
@@ -134,65 +135,47 @@ if __name__ == '__main__':
     parser.add_argument('--config', 
                         type=str, default=os.environ['SM_CHANNEL_CONFIG'])
 
+    parser.add_argument('--scaler', 
+                        type=str, default=os.environ['SM_CHANNEL_SCALER'])
+
     args = parser.parse_args()
 
-    # Read data and configurations
+    # Read configurations
 
     config = load_config(os.path.join(args.config, "config.json"))
 
-    dados = pd.read_csv(os.path.join(args.data_dir, "data.csv"))
+    with open(os.path.join(args.scaler, "scaler.json")) as f:
+        scaler = json.load(f)
+
+    # Read table of features
+
+    filename = os.path.join(args.data_dir, "data.csv")
+    target = config["model_training"]["target"]
+    variables = config["model_training"]["variables"]
+
+    feature_table = read_feature_table(filename, target, variables)
 
     # Train-Test split
 
-    dados = label_train_test(dados, 
-                            split=config["feature"]["split"]["test"], 
-                            split_valid=config["feature"]["split"]["valid"])
+    window = config["feature_engineering"]["window"]
+    target = config["model_training"]["target"]
+    variables = config["model_training"]["variables"]
+    hyperparameters = config["model_training"]["hyperparameters"]
 
-    master_table, scaler = feature_engineer(dados, 
-                                            config, 
-                                            mode="train", 
-                                            model=None)
-
-    # Load the training e validation data
-
-
-    train_loader, train_x_tensor, train_y_tensor = \
-        torch_data(master_table, 
-                   target="target", 
-                   variables=config["feature"]["variables"], 
-                   group_var="group", 
-                   batch=50, 
-                   group="train")
-
-    valid_loader, valid_x_tensor, valid_y_tensor = \
-        torch_data(master_table, 
-                   target="target", 
-                   variables=config["feature"]["variables"],
-                   group_var="group", 
-                   batch=50, 
-                   group="valid")
-
-    # Build the model
-    model = Model(args.input_layer, args.hidden_layer, args.dropout)
-
-    # Train the model.
-    optimizer = optim.Adam(model.parameters())
-    criterion = torch.nn.L1Loss()
-
-    train(model, train_loader, valid_loader, criterion, optimizer, args.epochs, args.seed)
+    model, tensores = train_model(feature_table, variables, window, hyperparameters)
 
     # Save the parameters used to construct the model
     model_info_path = os.path.join(args.model_dir, 'model_info.pth')
     with open(model_info_path, 'wb') as f:
         model_info = {
-            'batch_size': args.batch_size,
-            'epochs': args.epochs,
-            'seed': args.seed,
-            'input_layer': args.input_layer,
-            'hidden_layer': args.hidden_layer,
-            'dropout': args.dropout,
-            "maximo": scaler.maximo,
-            "minimo": scaler.minimo,
+            # 'batch_size': args.batch_size,
+            # 'epochs': args.epochs,
+            # 'seed': args.seed,
+            # 'input_layer': args.input_layer,
+            # 'hidden_layer': args.hidden_layer,
+            # 'dropout': args.dropout,
+            "maximo": scaler["maximo"],
+            "minimo": scaler["minimo"],
             "config": config
             }
         torch.save(model_info, f)

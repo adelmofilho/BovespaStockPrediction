@@ -1,6 +1,12 @@
 # BovespaStockPrediction
 ## Machine Learning Engineer Nanodegree Capstone Project
 
+### TL;DR
+
+![http://udacity-capstone-977053370764-us-east-1.s3-website-us-east-1.amazonaws.com/](https://i.imgur.com/Moqw1IT.png)
+
+
+
 ### Capstone Proposal
 
 Capstone proposal file is located at: [`docs/proposal.pdf`](https://github.com/adelmofilho/BovespaStockPrediction/blob/main/docs/proposal.pdf)

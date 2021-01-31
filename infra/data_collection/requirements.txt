@@ -1,1 +1,2 @@
+pandas==1.2.0
 yahooquery==2.2.12

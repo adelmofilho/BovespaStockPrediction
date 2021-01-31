@@ -1,4 +1,4 @@
-# Lambda function for data preparation
+# Lambda function for feature engineering
 
 ## Lambda layer
 

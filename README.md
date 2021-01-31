@@ -69,6 +69,10 @@ The model proposed for this project had a F1-Score ~0.6, i.e., not random.
 
 ![](https://i.imgur.com/n5QqANA.png)
 
+The following plots represent (1st row) real (blue dots) and predict (red line) values of ibovespa; (2nd row) prediction versus observed values; and (3rd row) error histograms. All plotted using test dataset.
+
+<p align="center"> Model proposed (left panels) and Benchmark model (right panels) evaluation plots</p>
+
 ## Capstone Proposal
 
 Capstone proposal file is located at: [`docs/proposal.pdf`](https://github.com/adelmofilho/BovespaStockPrediction/blob/main/docs/proposal.pdf)

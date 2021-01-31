@@ -29,9 +29,11 @@ Models of this nature provide useful support to decisions and allow simulations 
 
 ## Solution Architecture
 
+*check out: [infra/](https://github.com/adelmofilho/BovespaStockPrediction/tree/main/infra)*
+
 The final architecture differs positively from the one proposed on the capstone proposal:
 
-- Serverless approach (less costs and maintenance)
+- Serverless approach (lower costs and maintenance)
 - Event-driven architecture
 - Easily update model
 
@@ -45,9 +47,28 @@ When a new feature table gets in on specified bucket, another lambda function st
 
 ## Model Architecture
 
+*check out: [ibovespa/model_training.py](https://github.com/adelmofilho/BovespaStockPrediction/blob/main/ibovespa/model_training.py)*
 
+The purposed model architecture is composed of two full connected layer neural networks (fc) and a lstm neural network. Each element is related to one feature. Pytorch was the selected framework for this task.
 
+![](https://i.imgur.com/6Wyf6Wt.png)
 
-### Capstone Proposal
+## Model evaluation
+
+*check out: [LocalModelling.ipynb](https://github.com/adelmofilho/BovespaStockPrediction/blob/main/LocalModelling.ipynb)*
+
+Model evaluation was performed on a test dataset (latest ~30 days) against a benchmark model (prediction equals to the last observed value) on the same dataset.
+
+Mean absolute error (MAE) for both models were equivalent, but slightly lower on benchmark model. This performance is expected because ibovespa time series does not have expressive changes overnight.
+
+However, low error is not the only propriety expected on this project. It is important that prediction have the correct sign of variation (if ibovespa will increase or decrease).
+
+The benchmark model have F1-score of 0.5, completely random.
+
+The model proposed for this project had a F1-Score ~0.6, i.e., not random.
+
+![](https://i.imgur.com/n5QqANA.png)
+
+## Capstone Proposal
 
 Capstone proposal file is located at: [`docs/proposal.pdf`](https://github.com/adelmofilho/BovespaStockPrediction/blob/main/docs/proposal.pdf)

@@ -147,8 +147,7 @@ class Model(nn.Module):
         self.hidden_layer = hidden_layer
         self.dropout = nn.Dropout(dropout)
         self.fc1 = nn.Linear(input_layer, hidden_layer)
-        self.fc2 = nn.Linear(input_layer, hidden_layer)
-        self.fc3 = nn.Linear(hidden_layer*2+7, 1)
+        self.fc2 = nn.Linear(hidden_layer*2+7, 1)
 
         self.hidden_cell = (torch.zeros(1,1,self.hidden_layer),
                             torch.zeros(1,1,self.hidden_layer))
@@ -161,35 +160,15 @@ class Model(nn.Module):
         delta_sign = input[:,1,:]
         weekday_vector = input[:,2,:]
 
-
-        lag_pct_IBOV = input[:,3,:]
+        #lag_pct_IBOV = input[:,3,:]
         #lag_pct_IBOV = lag_pct_IBOV.view(len(input[:,3,:]),1,-1)[:,:,0]
-
-
-        lag_pct_ITUB4 = input[:,4,:]
-        lag_pct_ITUB4 = lag_pct_ITUB4.view(len(input[:,4,:]),1,-1)[:,:,0]
-
-        lag_pct_BBDC4 = input[:,5,:]
-
-        lag_pct_VALE3 = input[:,6,:]
-        lag_pct_VALE3 = lag_pct_VALE3.view(len(input[:,6,:]),1,-1)[:,:,0]
-
-        lag_pct_PETR4 = input[:,7,:]
-        lag_pct_PETR3 = input[:,8,:]
-        lag_pct_ABEV3 = input[:,9,:]
-        lag_pct_BBAS3 = input[:,10,:]
-        lag_pct_B3SA3 = input[:,11,:]
-        lag_pct_ITSA4 = input[:,12,:]
-
-
 
         fc1_out = self.dropout(self.fc1(lags))
 
         lstm_out, self.hidden_cell = self.lstm(delta_sign.view(len(delta_sign),1 , -1), self.hidden_cell)
         
         ds = torch.cat((fc1_out,lstm_out[:,0,:], weekday_vector),1)
-        #ds = torch.cat((fc1_out, weekday_vector),1)
-        output = self.fc3(ds)
+        output = self.fc2(ds)
 
         return output
 
